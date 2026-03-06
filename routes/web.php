@@ -6,6 +6,7 @@ use App\Http\Controllers\ElectionController;
 use App\Http\Controllers\NominationController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\VoteController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -34,4 +35,45 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/elections/{slug}/reset', [AdminController::class, 'resetVotes'])->name('reset');
     Route::get('/elections/{slug}/qr', [AdminController::class, 'qrCode'])->name('qr');
     Route::get('/elections/{slug}/qr/pdf', [AdminController::class, 'qrPdf'])->name('qr.pdf');
+});
+
+// Temporary setup route for cPanel deployment (remove after first run)
+Route::get('/setup-init', function () {
+    if (request('token') !== 'KEADILAN2026') {
+        abort(404);
+    }
+
+    $output = [];
+
+    // Generate APP_KEY if missing
+    if (empty(config('app.key'))) {
+        Artisan::call('key:generate', ['--force' => true]);
+        $output[] = 'APP_KEY generated.';
+    } else {
+        $output[] = 'APP_KEY already exists.';
+    }
+
+    // Run migrations
+    Artisan::call('migrate', ['--force' => true]);
+    $output[] = 'Migrations completed: ' . Artisan::output();
+
+    // Run seeders
+    Artisan::call('db:seed', ['--force' => true]);
+    $output[] = 'Seeding completed: ' . Artisan::output();
+
+    // Clear caches
+    Artisan::call('config:clear');
+    Artisan::call('route:clear');
+    Artisan::call('view:clear');
+    $output[] = 'Caches cleared.';
+
+    // Create storage link
+    try {
+        Artisan::call('storage:link');
+        $output[] = 'Storage linked.';
+    } catch (\Exception $e) {
+        $output[] = 'Storage link: ' . $e->getMessage();
+    }
+
+    return '<pre>' . implode("\n", $output) . "\n\nSetup complete! Remove this route now.</pre>";
 });
