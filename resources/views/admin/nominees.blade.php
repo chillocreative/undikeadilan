@@ -27,8 +27,7 @@
                     body: JSON.stringify({name: name})
                 });
                 if (res.ok) {
-                    this.nominees.splice(index, 1);
-                    this.selected = this.selected.filter(n => n !== name);
+                    location.reload();
                 }
             }
         }">
