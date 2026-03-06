@@ -84,6 +84,18 @@
                 <span class="flex-1 text-white text-sm">{{ $candidate->name }}</span>
                 <span class="text-sky-200/40 text-xs">{{ $candidate->nomination_count }}x</span>
                 <span class="text-sky-200/60 text-xs">{{ $candidate->votes }} undi</span>
+                <button type="button"
+                        onclick="if(confirm('Padam calon {{ $candidate->name }}?')) {
+                            fetch('{{ route('admin.candidate.delete', [$election->slug, $candidate->id]) }}', {
+                                method: 'DELETE',
+                                headers: {'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json'}
+                            }).then(() => location.reload())
+                        }"
+                        class="text-rose-400/60 hover:text-rose-300 transition-colors p-1" title="Padam">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
             </div>
             @endforeach
         </div>
