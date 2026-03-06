@@ -62,23 +62,46 @@ foreach ($requiredExtensions as $ext) {
     echo "  $ext: " . (extension_loaded($ext) ? 'OK' : 'MISSING') . "\n";
 }
 
-// Try to boot Laravel and catch the actual error
+// Try to boot Laravel and handle a request to see the real error
 echo "\n--- Laravel Boot Test ---\n";
 try {
+    // Force debug mode to see real errors
+    putenv('APP_DEBUG=true');
+    $_ENV['APP_DEBUG'] = 'true';
+    $_SERVER['APP_DEBUG'] = 'true';
+
     require __DIR__ . '/../vendor/autoload.php';
     $app = require_once __DIR__ . '/../bootstrap/app.php';
     $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-    echo "Laravel booted successfully!\n";
+
+    // Handle a request to the homepage to trigger the real error
+    $request = Illuminate\Http\Request::create('/', 'GET');
+    $response = $kernel->handle($request);
+
+    echo "Laravel response status: " . $response->getStatusCode() . "\n";
+    if ($response->getStatusCode() >= 400) {
+        // Show the error content
+        $content = $response->getContent();
+        // Strip HTML tags for readability, keep the error message
+        $text = strip_tags($content);
+        // Find the relevant error portion
+        $text = preg_replace('/\s+/', ' ', $text);
+        echo "Error: " . substr($text, 0, 2000) . "\n";
+    } else {
+        echo "Homepage loaded OK!\n";
+    }
 
     // Test database connection
     try {
-        $app->make('db')->connection()->getPdo();
+        $pdo = $app->make('db')->connection()->getPdo();
         echo "Database connection: OK\n";
     } catch (Exception $e) {
         echo "Database connection FAILED: " . $e->getMessage() . "\n";
     }
+
+    $kernel->terminate($request, $response);
 } catch (Throwable $e) {
-    echo "Laravel boot FAILED!\n";
+    echo "Laravel FAILED!\n";
     echo "Error: " . $e->getMessage() . "\n";
     echo "File: " . $e->getFile() . ":" . $e->getLine() . "\n";
     echo "\nTrace (last 5):\n";
