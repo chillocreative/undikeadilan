@@ -125,6 +125,7 @@ class AdminController extends Controller
     {
         $election = Election::where('slug', $slug)->firstOrFail();
         $candidate = Candidate::where('id', $id)->where('election_id', $election->id)->firstOrFail();
+        \App\Models\Vote::where('candidate_id', $candidate->id)->delete();
         $candidate->delete();
         Cache::forget("results_{$slug}");
 
