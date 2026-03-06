@@ -14,6 +14,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
             <p class="text-emerald-200 font-medium">{{ session('success') }}</p>
+            <a href="{{ route('home') }}" class="mt-4 w-full inline-block text-center rounded-xl bg-sky-600 hover:bg-sky-500 px-6 py-3.5 text-white font-semibold shadow-lg transition-all">Kembali ke halaman utama</a>
         </div>
     @elseif($hasNominated)
         <div class="rounded-2xl bg-sky-500/20 border border-sky-400/30 p-6 text-center">
@@ -21,6 +22,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <p class="text-sky-200 font-medium">Anda telah menghantar pencalonan.</p>
+            <a href="{{ route('home') }}" class="mt-4 w-full inline-block text-center rounded-xl bg-sky-600 hover:bg-sky-500 px-6 py-3.5 text-white font-semibold shadow-lg transition-all">Kembali ke halaman utama</a>
         </div>
     @else
         <form method="POST" action="{{ route('nomination.store', $election->slug) }}"

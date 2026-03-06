@@ -17,6 +17,7 @@
             <a href="{{ route('result.show', $election->slug) }}" class="inline-block px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium transition-colors">
                 Lihat Keputusan
             </a>
+            <a href="{{ route('home') }}" class="mt-4 w-full inline-block text-center rounded-xl bg-sky-600 hover:bg-sky-500 px-6 py-3.5 text-white font-semibold shadow-lg transition-all">Kembali ke halaman utama</a>
         </div>
     @else
         {{-- Candidate cards --}}
@@ -57,6 +58,7 @@
             <a href="{{ route('result.show', $election->slug) }}" class="inline-block px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium transition-colors">
                 Lihat Keputusan
             </a>
+            <a href="{{ route('home') }}" class="mt-4 w-full inline-block text-center rounded-xl bg-sky-600 hover:bg-sky-500 px-6 py-3.5 text-white font-semibold shadow-lg transition-all">Kembali ke halaman utama</a>
         </div>
 
         {{-- Error message --}}
