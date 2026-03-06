@@ -13,6 +13,21 @@ echo "Server Software: " . $_SERVER['SERVER_SOFTWARE'] . "\n\n";
 $envPath = __DIR__ . '/../.env';
 echo ".env exists: " . (file_exists($envPath) ? 'YES' : 'NO - MUST CREATE THIS FILE') . "\n";
 
+if (file_exists($envPath)) {
+    $envContent = file_get_contents($envPath);
+    // Show key .env values (mask sensitive data)
+    preg_match('/APP_KEY=(.*)/', $envContent, $m);
+    echo "APP_KEY: " . (empty(trim($m[1] ?? '')) ? 'EMPTY - NEEDS GENERATING' : 'SET (' . strlen(trim($m[1])) . ' chars)') . "\n";
+    preg_match('/APP_ENV=(.*)/', $envContent, $m);
+    echo "APP_ENV: " . trim($m[1] ?? 'not set') . "\n";
+    preg_match('/APP_DEBUG=(.*)/', $envContent, $m);
+    echo "APP_DEBUG: " . trim($m[1] ?? 'not set') . "\n";
+    preg_match('/DB_DATABASE=(.*)/', $envContent, $m);
+    echo "DB_DATABASE: " . trim($m[1] ?? 'not set') . "\n";
+    preg_match('/DB_USERNAME=(.*)/', $envContent, $m);
+    echo "DB_USERNAME: " . trim($m[1] ?? 'not set') . "\n";
+}
+
 // Check .env.example
 $envExamplePath = __DIR__ . '/../.env.example';
 echo ".env.example exists: " . (file_exists($envExamplePath) ? 'YES' : 'NO') . "\n";
@@ -21,28 +36,55 @@ echo ".env.example exists: " . (file_exists($envExamplePath) ? 'YES' : 'NO') . "
 $vendorPath = __DIR__ . '/../vendor/autoload.php';
 echo "vendor/autoload.php exists: " . (file_exists($vendorPath) ? 'YES' : 'NO - VENDOR MISSING') . "\n\n";
 
-// Check storage writable
-$storagePath = __DIR__ . '/../storage';
-echo "storage/ writable: " . (is_writable($storagePath) ? 'YES' : 'NO - RUN: chmod -R 775 storage') . "\n";
-
-$bootstrapCachePath = __DIR__ . '/../bootstrap/cache';
-echo "bootstrap/cache/ writable: " . (is_writable($bootstrapCachePath) ? 'YES' : 'NO - RUN: chmod -R 775 bootstrap/cache') . "\n\n";
+// Check storage subdirectories
+$storageDirs = [
+    'storage' => __DIR__ . '/../storage',
+    'storage/framework' => __DIR__ . '/../storage/framework',
+    'storage/framework/cache' => __DIR__ . '/../storage/framework/cache',
+    'storage/framework/sessions' => __DIR__ . '/../storage/framework/sessions',
+    'storage/framework/views' => __DIR__ . '/../storage/framework/views',
+    'storage/logs' => __DIR__ . '/../storage/logs',
+    'bootstrap/cache' => __DIR__ . '/../bootstrap/cache',
+];
+echo "Directory Permissions:\n";
+foreach ($storageDirs as $name => $path) {
+    if (!file_exists($path)) {
+        echo "  $name: MISSING\n";
+    } else {
+        echo "  $name: " . (is_writable($path) ? 'writable' : 'NOT WRITABLE') . " (" . substr(sprintf('%o', fileperms($path)), -4) . ")\n";
+    }
+}
 
 // Check required PHP extensions
+echo "\nPHP Extensions:\n";
 $requiredExtensions = ['pdo', 'pdo_mysql', 'mbstring', 'openssl', 'tokenizer', 'xml', 'ctype', 'json', 'bcmath', 'fileinfo'];
-echo "PHP Extensions:\n";
 foreach ($requiredExtensions as $ext) {
     echo "  $ext: " . (extension_loaded($ext) ? 'OK' : 'MISSING') . "\n";
 }
 
-// If .env missing, offer to create it
-if (!file_exists($envPath) && file_exists($envExamplePath)) {
-    if (isset($_GET['create_env'])) {
-        copy($envExamplePath, $envPath);
-        echo "\n.env CREATED from .env.example! Refresh the page.\n";
-    } else {
-        echo "\nTo auto-create .env from .env.example, visit:\n";
-        echo $_SERVER['REQUEST_URI'] . (strpos($_SERVER['REQUEST_URI'], '?') ? '&' : '?') . "create_env=1\n";
+// Try to boot Laravel and catch the actual error
+echo "\n--- Laravel Boot Test ---\n";
+try {
+    require __DIR__ . '/../vendor/autoload.php';
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
+    $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+    echo "Laravel booted successfully!\n";
+
+    // Test database connection
+    try {
+        $app->make('db')->connection()->getPdo();
+        echo "Database connection: OK\n";
+    } catch (Exception $e) {
+        echo "Database connection FAILED: " . $e->getMessage() . "\n";
+    }
+} catch (Throwable $e) {
+    echo "Laravel boot FAILED!\n";
+    echo "Error: " . $e->getMessage() . "\n";
+    echo "File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "\nTrace (last 5):\n";
+    $trace = $e->getTrace();
+    foreach (array_slice($trace, 0, 5) as $i => $t) {
+        echo "  #$i " . ($t['file'] ?? '?') . ':' . ($t['line'] ?? '?') . ' ' . ($t['class'] ?? '') . ($t['type'] ?? '') . ($t['function'] ?? '') . "()\n";
     }
 }
 
