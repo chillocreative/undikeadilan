@@ -31,6 +31,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/elections/{slug}/candidates/add', [AdminController::class, 'addCandidate'])->name('candidate.add');
     Route::put('/elections/{slug}/candidates/{id}', [AdminController::class, 'updateCandidate'])->name('candidate.update');
     Route::delete('/elections/{slug}/candidates/{id}', [AdminController::class, 'deleteCandidate'])->name('candidate.delete');
+    Route::delete('/elections/{slug}/nominees', [AdminController::class, 'deleteNominee'])->name('nominee.delete');
     Route::post('/elections/{slug}/reset', [AdminController::class, 'resetVotes'])->name('reset');
     Route::get('/elections/{slug}/qr', [AdminController::class, 'qrCode'])->name('qr');
     Route::get('/elections/{slug}/qr/pdf', [AdminController::class, 'qrPdf'])->name('qr.pdf');

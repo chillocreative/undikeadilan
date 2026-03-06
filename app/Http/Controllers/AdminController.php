@@ -67,6 +67,17 @@ class AdminController extends Controller
         return view('admin.nominees', compact('election', 'nominees', 'candidates'));
     }
 
+    public function deleteNominee(Request $request, string $slug)
+    {
+        $election = Election::where('slug', $slug)->firstOrFail();
+
+        $request->validate(['name' => 'required|string']);
+
+        $election->nominees()->where('name', $request->name)->delete();
+
+        return back()->with('success', "Pencalonan '{$request->name}' telah dipadam.");
+    }
+
     public function syncCandidates(Request $request, string $slug)
     {
         $election = Election::where('slug', $slug)->firstOrFail();
