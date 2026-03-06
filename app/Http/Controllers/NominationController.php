@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Candidate;
 use App\Models\Election;
 use App\Models\NominationLog;
 use App\Models\Nominee;
@@ -49,6 +50,13 @@ class NominationController extends Controller
                 'submitted_by_ip' => $ip,
                 'session_token' => $token,
             ]);
+
+            // Auto-promote to candidate
+            $nominationCount = $election->nominees()->where('name', $name)->count();
+            Candidate::updateOrCreate(
+                ['election_id' => $election->id, 'name' => $name],
+                ['nomination_count' => $nominationCount]
+            );
         }
 
         NominationLog::create([
