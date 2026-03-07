@@ -33,17 +33,6 @@ class ElectionController extends Controller
 
         if ($election->phase === 'voting') {
             $hasVoted = false;
-            $cookieKey = "vote_{$slug}_token";
-            $token = $request->cookie($cookieKey);
-
-            if ($token) {
-                // Check if token is still valid (not reset)
-                $vote = $election->votes()->where('voter_token', $token)->first();
-                if ($vote && (!$election->votes_reset_at || $vote->created_at->gt($election->votes_reset_at))) {
-                    $hasVoted = true;
-                }
-            }
-
             $candidates = $election->candidates()->orderBy('sort_order')->get();
             return view('election.vote', compact('election', 'candidates', 'hasVoted'));
         }

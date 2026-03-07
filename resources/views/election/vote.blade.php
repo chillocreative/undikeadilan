@@ -105,7 +105,12 @@ function votingForm() {
                 if (res.ok) {
                     this.voted = true;
                     this.successMessage = data.message;
-                    localStorage.setItem('voted_{{ $election->slug }}', 'true');
+                    // Reset form after 2 seconds so user can vote again
+                    setTimeout(() => {
+                        this.voted = false;
+                        this.selected = null;
+                        this.successMessage = '';
+                    }, 2000);
                 } else {
                     this.errorMessage = data.error || 'Ralat berlaku. Sila cuba lagi.';
                 }

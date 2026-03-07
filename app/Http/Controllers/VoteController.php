@@ -15,16 +15,6 @@ class VoteController extends Controller
     {
         $election = Election::where('slug', $slug)->where('phase', 'voting')->firstOrFail();
 
-        // Check if already voted via cookie
-        $cookieKey = "vote_{$slug}_token";
-        $existingToken = $request->cookie($cookieKey);
-        if ($existingToken) {
-            $existingVote = $election->votes()->where('voter_token', $existingToken)->first();
-            if ($existingVote && (!$election->votes_reset_at || $existingVote->created_at->gt($election->votes_reset_at))) {
-                return response()->json(['error' => 'Anda telah mengundi.'], 422);
-            }
-        }
-
         $request->validate([
             'candidate_id' => 'required|exists:candidates,id',
         ]);
@@ -49,6 +39,6 @@ class VoteController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Terima kasih! Undi anda telah direkodkan.',
-        ])->withCookie(cookie($cookieKey, $token, 60 * 24 * 30));
+        ]);
     }
 }
